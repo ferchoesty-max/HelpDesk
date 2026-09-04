@@ -89,6 +89,72 @@
         </section>
     </main>
 
+    <!-- Modal para Nuevo Ticket -->
+    <div id="ticket-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-card">
+            <header class="modal-header">
+                <h2 id="modal-title">Nuevo Ticket</h2>
+                <button id="btn-close-modal" class="btn-close" type="button" aria-label="Cerrar modal">&times;</button>
+            </header>
+            <form id="ticket-form" novalidate>
+                <div class="form-group">
+                    <label for="ticket-title">Título *</label>
+                    <input 
+                        type="text" 
+                        id="ticket-title" 
+                        name="title" 
+                        class="form-control" 
+                        placeholder="Ej. Computadora no inicia"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="ticket-description">Descripción *</label>
+                    <textarea 
+                        id="ticket-description" 
+                        name="description" 
+                        class="form-control" 
+                        rows="4" 
+                        placeholder="Describe detalladamente el problema..."
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ticket-category">Categoría *</label>
+                        <select id="ticket-category" name="category" class="form-control" required>
+                            <option value="" disabled selected>Selecciona categoría</option>
+                            <option value="Hardware">Hardware</option>
+                            <option value="Software">Software</option>
+                            <option value="Red">Red</option>
+                            <option value="Accesos">Accesos</option>
+                            <option value="Correo">Correo</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ticket-priority">Prioridad *</label>
+                        <select id="ticket-priority" name="priority" class="form-control" required>
+                            <option value="" disabled selected>Selecciona prioridad</option>
+                            <option value="Baja">Baja</option>
+                            <option value="Media">Media</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Crítica">Crítica</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button id="btn-cancel-ticket" class="button button-secondary" type="button">Cancelar</button>
+                    <button type="submit" class="button button-primary">Crear Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <footer class="footer">
         <div class="container">
             <p><strong>HelpDesk Lite</strong> · Sistema de Gestión de Tickets</p>
@@ -99,3 +165,4 @@
     <script src="./js/app.js"></script>
 </body>
 </html>
+
