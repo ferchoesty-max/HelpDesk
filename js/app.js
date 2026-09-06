@@ -161,6 +161,61 @@ if (ticketModal) {
   });
 }
 
+/**
+ * Genera un nuevo folio consecutivo único con formato HD-XXXX
+ * @returns {{ id: number, folio: string }}
+ */
+function generateNextFolio() {
+  const maxId = tickets.reduce((max, t) => Math.max(max, t.id || 0), 0);
+  const nextId = maxId + 1;
+  const folio = `HD-${String(nextId).padStart(4, '0')}`;
+  return { id: nextId, folio };
+}
+
+/**
+ * Maneja el envío del formulario para crear un nuevo ticket
+ * @param {Event} e
+ */
+function handleTicketSubmit(e) {
+  e.preventDefault();
+
+  const titleInput = document.getElementById('ticket-title');
+  const descriptionInput = document.getElementById('ticket-description');
+  const categoryInput = document.getElementById('ticket-category');
+  const priorityInput = document.getElementById('ticket-priority');
+
+  const title = titleInput ? titleInput.value.trim() : '';
+  const description = descriptionInput ? descriptionInput.value.trim() : '';
+  const category = categoryInput ? categoryInput.value : '';
+  const priority = priorityInput ? priorityInput.value : '';
+
+  if (!title || !description || !category || !priority) {
+    alert('Por favor completa todos los campos obligatorios.');
+    return;
+  }
+
+  const { id, folio } = generateNextFolio();
+  const newTicket = {
+    id,
+    folio,
+    title,
+    description,
+    category,
+    priority,
+    status: 'Nuevo',
+    createdAt: new Date().toISOString()
+  };
+
+  tickets.unshift(newTicket);
+  closeModal();
+  renderTickets(tickets);
+  updateMetrics();
+}
+
+if (ticketForm) {
+  ticketForm.addEventListener('submit', handleTicketSubmit);
+}
+
 // Inicialización de render y métricas
 document.addEventListener('DOMContentLoaded', () => {
   renderTickets(tickets);
