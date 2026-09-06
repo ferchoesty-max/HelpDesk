@@ -57,6 +57,10 @@ const metricNew = document.getElementById('metric-new');
 const metricProcess = document.getElementById('metric-process');
 const metricResolved = document.getElementById('metric-resolved');
 
+// Controles de Búsqueda
+const searchInput = document.getElementById('search-input');
+let searchTerm = '';
+
 /**
  * Escapa caracteres HTML para prevenir inyección de código
  * @param {string} str
@@ -208,7 +212,7 @@ function handleTicketSubmit(e) {
 
   tickets.unshift(newTicket);
   closeModal();
-  renderTickets(tickets);
+  renderTickets(getFilteredTickets());
   updateMetrics();
 }
 
@@ -216,13 +220,42 @@ if (ticketForm) {
   ticketForm.addEventListener('submit', handleTicketSubmit);
 }
 
+/**
+ * Filtra los tickets en función del término de búsqueda actual
+ * @returns {Array} Tickets filtrados
+ */
+function getFilteredTickets() {
+  const term = searchTerm.toLowerCase().trim();
+  if (!term) return tickets;
+
+  return tickets.filter(ticket => {
+    const matchesFolio = ticket.folio.toLowerCase().includes(term);
+    const matchesTitle = ticket.title.toLowerCase().includes(term);
+    const matchesDescription = ticket.description.toLowerCase().includes(term);
+    return matchesFolio || matchesTitle || matchesDescription;
+  });
+}
+
+/**
+ * Maneja el evento de entrada en el campo de búsqueda en tiempo real
+ * @param {Event} e
+ */
+function handleSearch(e) {
+  searchTerm = e.target.value;
+  renderTickets(getFilteredTickets());
+}
+
+if (searchInput) {
+  searchInput.addEventListener('input', handleSearch);
+}
+
 // Inicialización de render y métricas
 document.addEventListener('DOMContentLoaded', () => {
-  renderTickets(tickets);
+  renderTickets(getFilteredTickets());
   updateMetrics();
 });
 
 if (document.readyState === 'interactive' || document.readyState === 'complete') {
-  renderTickets(tickets);
+  renderTickets(getFilteredTickets());
   updateMetrics();
 }
