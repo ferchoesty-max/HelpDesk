@@ -1,11 +1,3 @@
-/**
- * HelpDesk Lite - Sistema de Gestión de Tickets
- * Aplicaciones de Internet — Universidad de Guanajuato (DICIS)
- * 
- * Módulo de Gestión de Tickets (Sesión 3 - JavaScript + DOM)
- */
-
-// Colección inicial de tickets de ejemplo
 const initialTickets = [
   {
     id: 1,
@@ -39,10 +31,41 @@ const initialTickets = [
   }
 ];
 
-// Estado de la aplicación
-let tickets = [...initialTickets];
+const VALID_TRANSITIONS = {
+  'Nuevo': ['En proceso', 'Cancelado'],
+  'En proceso': ['Resuelto', 'Cancelado'],
+  'Resuelto': ['Cerrado'],
+  'Cerrado': [],
+  'Cancelado': []
+};
 
-// Referencias al DOM
+const STORAGE_KEY = 'helpdesk_tickets';
+
+function loadTicketsFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.error('Error al leer de localStorage:', err);
+  }
+  return [...initialTickets];
+}
+
+function saveTicketsToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets));
+  } catch (err) {
+    console.error('Error al guardar en localStorage:', err);
+  }
+}
+
+let tickets = loadTicketsFromStorage();
+
 const ticketsContainer = document.getElementById('tickets-container');
 const emptyState = document.getElementById('empty-state');
 const ticketModal = document.getElementById('ticket-modal');
@@ -51,13 +74,11 @@ const btnCloseModal = document.getElementById('btn-close-modal');
 const btnCancelTicket = document.getElementById('btn-cancel-ticket');
 const ticketForm = document.getElementById('ticket-form');
 
-// Métricas del Dashboard
 const metricTotal = document.getElementById('metric-total');
 const metricNew = document.getElementById('metric-new');
 const metricProcess = document.getElementById('metric-process');
 const metricResolved = document.getElementById('metric-resolved');
 
-// Controles de Búsqueda y Filtros
 const searchInput = document.getElementById('search-input');
 const statusButtons = document.querySelectorAll('.filter-button[data-status]');
 const priorityFilter = document.getElementById('priority-filter');
@@ -66,22 +87,12 @@ let searchTerm = '';
 let activeStatusFilter = 'Todos';
 let activePriorityFilter = 'Todas';
 
-/**
- * Escapa caracteres HTML para prevenir inyección de código
- * @param {string} str
- * @returns {string}
- */
 function escapeHTML(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
 }
 
-/**
- * Formatea una fecha ISO a formato legible DD/MM/AAAA HH:mm
- * @param {string} isoString
- * @returns {string}
- */
 function formatDate(isoString) {
   const date = new Date(isoString);
   if (isNaN(date.getTime())) return isoString;
@@ -93,10 +104,28 @@ function formatDate(isoString) {
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
-/**
- * Renderiza dinámicamente el listado de tickets en el contenedor principal
- * @param {Array} ticketsToRender
- */
+function getActionButtonsHTML(ticket) {
+  const allowed = VALID_TRANSITIONS[ticket.status] || [];
+  if (allowed.length === 0) {
+    return `<span style="font-size: 0.8rem; color: var(--color-text-soft);">Ticket finalizado</span>`;
+  }
+
+  return allowed
+    .map(nextStatus => {
+      const isCancel = nextStatus === 'Cancelado';
+      const btnClass = isCancel ? 'button button-secondary' : 'button button-primary';
+      const label = nextStatus === 'En proceso'
+        ? 'Atender'
+        : nextStatus === 'Resuelto'
+        ? 'Resolver'
+        : nextStatus === 'Cerrado'
+        ? 'Cerrar'
+        : 'Cancelar';
+      return `<button type="button" class="${btnClass}" style="font-size: 0.8rem; padding: 0.35rem 0.7rem;" data-action="change-status" data-target="${nextStatus}" data-id="${ticket.id}">${label}</button>`;
+    })
+    .join(' ');
+}
+
 function renderTickets(ticketsToRender) {
   if (!ticketsContainer || !emptyState) return;
 
@@ -123,14 +152,14 @@ function renderTickets(ticketsToRender) {
           <span class="badge badge-status" data-status="${ticket.status}">${ticket.status}</span> · 
           <span>${formatDate(ticket.createdAt)}</span>
         </div>
+        <div class="ticket-actions">
+          ${getActionButtonsHTML(ticket)}
+        </div>
       </article>
     `)
     .join('');
 }
 
-/**
- * Actualiza los contadores de métricas del Dashboard
- */
 function updateMetrics() {
   if (!metricTotal || !metricNew || !metricProcess || !metricResolved) return;
   metricTotal.textContent = tickets.length;
@@ -139,9 +168,28 @@ function updateMetrics() {
   metricResolved.textContent = tickets.filter(t => t.status === 'Resuelto').length;
 }
 
-/**
- * Control del modal de nuevo ticket
- */
+function isValidTransition(currentStatus, nextStatus) {
+  const allowed = VALID_TRANSITIONS[currentStatus] || [];
+  return allowed.includes(nextStatus);
+}
+
+function changeTicketStatus(ticketId, targetStatus) {
+  const ticket = tickets.find(t => t.id === Number(ticketId));
+  if (!ticket) return false;
+
+  if (!isValidTransition(ticket.status, targetStatus)) {
+    console.warn(`Transición inválida impedida: no se permite cambiar de "${ticket.status}" a "${targetStatus}".`);
+    alert(`Operación no permitida: un ticket con estado "${ticket.status}" no puede pasar a "${targetStatus}".`);
+    return false;
+  }
+
+  ticket.status = targetStatus;
+  saveTicketsToStorage();
+  renderTickets(getFilteredTickets());
+  updateMetrics();
+  return true;
+}
+
 function openModal() {
   if (ticketModal) {
     ticketModal.classList.remove('hidden');
@@ -157,23 +205,6 @@ function closeModal() {
   }
 }
 
-// Asignación de eventos del modal
-if (btnOpenModal) btnOpenModal.addEventListener('click', openModal);
-if (btnCloseModal) btnCloseModal.addEventListener('click', closeModal);
-if (btnCancelTicket) btnCancelTicket.addEventListener('click', closeModal);
-
-if (ticketModal) {
-  ticketModal.addEventListener('click', (e) => {
-    if (e.target === ticketModal) {
-      closeModal();
-    }
-  });
-}
-
-/**
- * Genera un nuevo folio consecutivo único con formato HD-XXXX
- * @returns {{ id: number, folio: string }}
- */
 function generateNextFolio() {
   const maxId = tickets.reduce((max, t) => Math.max(max, t.id || 0), 0);
   const nextId = maxId + 1;
@@ -181,10 +212,6 @@ function generateNextFolio() {
   return { id: nextId, folio };
 }
 
-/**
- * Maneja el envío del formulario para crear un nuevo ticket
- * @param {Event} e
- */
 function handleTicketSubmit(e) {
   e.preventDefault();
 
@@ -216,19 +243,12 @@ function handleTicketSubmit(e) {
   };
 
   tickets.unshift(newTicket);
+  saveTicketsToStorage();
   closeModal();
   renderTickets(getFilteredTickets());
   updateMetrics();
 }
 
-if (ticketForm) {
-  ticketForm.addEventListener('submit', handleTicketSubmit);
-}
-
-/**
- * Filtra los tickets en función del término de búsqueda, estado y prioridad activos
- * @returns {Array} Tickets filtrados
- */
 function getFilteredTickets() {
   const term = searchTerm.toLowerCase().trim();
 
@@ -246,20 +266,29 @@ function getFilteredTickets() {
   });
 }
 
-/**
- * Maneja el evento de entrada en el campo de búsqueda en tiempo real
- * @param {Event} e
- */
 function handleSearch(e) {
   searchTerm = e.target.value;
   renderTickets(getFilteredTickets());
+}
+
+if (btnOpenModal) btnOpenModal.addEventListener('click', openModal);
+if (btnCloseModal) btnCloseModal.addEventListener('click', closeModal);
+if (btnCancelTicket) btnCancelTicket.addEventListener('click', closeModal);
+
+if (ticketModal) {
+  ticketModal.addEventListener('click', (e) => {
+    if (e.target === ticketModal) closeModal();
+  });
+}
+
+if (ticketForm) {
+  ticketForm.addEventListener('submit', handleTicketSubmit);
 }
 
 if (searchInput) {
   searchInput.addEventListener('input', handleSearch);
 }
 
-// Eventos de filtro por estado
 statusButtons.forEach(button => {
   button.addEventListener('click', () => {
     statusButtons.forEach(btn => btn.classList.remove('active'));
@@ -269,7 +298,6 @@ statusButtons.forEach(button => {
   });
 });
 
-// Evento de filtro por prioridad
 if (priorityFilter) {
   priorityFilter.addEventListener('change', (e) => {
     activePriorityFilter = e.target.value;
@@ -277,7 +305,14 @@ if (priorityFilter) {
   });
 }
 
-// Inicialización de render y métricas
+if (ticketsContainer) {
+  ticketsContainer.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action="change-status"]');
+    if (!btn) return;
+    changeTicketStatus(btn.dataset.id, btn.dataset.target);
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   renderTickets(getFilteredTickets());
   updateMetrics();
