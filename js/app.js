@@ -57,9 +57,14 @@ const metricNew = document.getElementById('metric-new');
 const metricProcess = document.getElementById('metric-process');
 const metricResolved = document.getElementById('metric-resolved');
 
-// Controles de Búsqueda
+// Controles de Búsqueda y Filtros
 const searchInput = document.getElementById('search-input');
+const statusButtons = document.querySelectorAll('.filter-button[data-status]');
+const priorityFilter = document.getElementById('priority-filter');
+
 let searchTerm = '';
+let activeStatusFilter = 'Todos';
+let activePriorityFilter = 'Todas';
 
 /**
  * Escapa caracteres HTML para prevenir inyección de código
@@ -221,18 +226,23 @@ if (ticketForm) {
 }
 
 /**
- * Filtra los tickets en función del término de búsqueda actual
+ * Filtra los tickets en función del término de búsqueda, estado y prioridad activos
  * @returns {Array} Tickets filtrados
  */
 function getFilteredTickets() {
   const term = searchTerm.toLowerCase().trim();
-  if (!term) return tickets;
 
   return tickets.filter(ticket => {
-    const matchesFolio = ticket.folio.toLowerCase().includes(term);
-    const matchesTitle = ticket.title.toLowerCase().includes(term);
-    const matchesDescription = ticket.description.toLowerCase().includes(term);
-    return matchesFolio || matchesTitle || matchesDescription;
+    const matchesSearch = !term || (
+      ticket.folio.toLowerCase().includes(term) ||
+      ticket.title.toLowerCase().includes(term) ||
+      ticket.description.toLowerCase().includes(term)
+    );
+
+    const matchesStatus = activeStatusFilter === 'Todos' || ticket.status === activeStatusFilter;
+    const matchesPriority = activePriorityFilter === 'Todas' || ticket.priority === activePriorityFilter;
+
+    return matchesSearch && matchesStatus && matchesPriority;
   });
 }
 
@@ -247,6 +257,24 @@ function handleSearch(e) {
 
 if (searchInput) {
   searchInput.addEventListener('input', handleSearch);
+}
+
+// Eventos de filtro por estado
+statusButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    statusButtons.forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+    activeStatusFilter = button.getAttribute('data-status') || 'Todos';
+    renderTickets(getFilteredTickets());
+  });
+});
+
+// Evento de filtro por prioridad
+if (priorityFilter) {
+  priorityFilter.addEventListener('change', (e) => {
+    activePriorityFilter = e.target.value;
+    renderTickets(getFilteredTickets());
+  });
 }
 
 // Inicialización de render y métricas
