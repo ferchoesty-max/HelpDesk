@@ -39,7 +39,32 @@ const VALID_TRANSITIONS = {
   'Cancelado': []
 };
 
-let tickets = [...initialTickets];
+const STORAGE_KEY = 'helpdesk_tickets';
+
+function loadTicketsFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.error('Error al leer de localStorage:', err);
+  }
+  return [...initialTickets];
+}
+
+function saveTicketsToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets));
+  } catch (err) {
+    console.error('Error al guardar en localStorage:', err);
+  }
+}
+
+let tickets = loadTicketsFromStorage();
 
 const ticketsContainer = document.getElementById('tickets-container');
 const emptyState = document.getElementById('empty-state');
@@ -148,6 +173,7 @@ function changeTicketStatus(ticketId, targetStatus) {
   if (!ticket) return;
 
   ticket.status = targetStatus;
+  saveTicketsToStorage();
   renderTickets(getFilteredTickets());
   updateMetrics();
 }
@@ -205,6 +231,7 @@ function handleTicketSubmit(e) {
   };
 
   tickets.unshift(newTicket);
+  saveTicketsToStorage();
   closeModal();
   renderTickets(getFilteredTickets());
   updateMetrics();
