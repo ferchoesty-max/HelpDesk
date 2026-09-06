@@ -168,14 +168,26 @@ function updateMetrics() {
   metricResolved.textContent = tickets.filter(t => t.status === 'Resuelto').length;
 }
 
+function isValidTransition(currentStatus, nextStatus) {
+  const allowed = VALID_TRANSITIONS[currentStatus] || [];
+  return allowed.includes(nextStatus);
+}
+
 function changeTicketStatus(ticketId, targetStatus) {
   const ticket = tickets.find(t => t.id === Number(ticketId));
-  if (!ticket) return;
+  if (!ticket) return false;
+
+  if (!isValidTransition(ticket.status, targetStatus)) {
+    console.warn(`Transición inválida impedida: no se permite cambiar de "${ticket.status}" a "${targetStatus}".`);
+    alert(`Operación no permitida: un ticket con estado "${ticket.status}" no puede pasar a "${targetStatus}".`);
+    return false;
+  }
 
   ticket.status = targetStatus;
   saveTicketsToStorage();
   renderTickets(getFilteredTickets());
   updateMetrics();
+  return true;
 }
 
 function openModal() {
