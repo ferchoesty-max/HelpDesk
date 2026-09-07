@@ -1,36 +1,25 @@
-/* ============================================================
-   HelpDesk Lite - Hoja de estilos
-   HTML5 + CSS3 (Flexbox, Grid, variables, responsive)
-   ============================================================ */
-
-/* ---------- Variables globales ---------- */
 :root {
-  /* Colores base */
   --color-bg: #f4f6f8;
   --color-surface: #ffffff;
   --color-text: #1f2933;
   --color-text-soft: #616e7c;
   --color-border: #d7dde3;
 
-  /* Marca / acciones */
   --color-primary: #2563eb;
   --color-primary-dark: #1d4ed8;
   --color-secondary: #e4e7eb;
 
-  /* Estados */
   --color-new: #2563eb;
   --color-process: #d97706;
   --color-resolved: #059669;
   --color-closed: #6b7280;
   --color-cancelled: #dc2626;
 
-  /* Prioridades */
   --color-low: #6b7280;
   --color-medium: #2563eb;
   --color-high: #d97706;
   --color-critical: #dc2626;
 
-  /* Medidas */
   --radius: 8px;
   --gap: 1rem;
   --max-width: 1000px;
@@ -38,7 +27,6 @@
   --transition: 0.2s ease;
 }
 
-/* ---------- Reset / Box model ---------- */
 *,
 *::before,
 *::after {
@@ -55,7 +43,6 @@ body {
   min-height: 100vh;
 }
 
-/* ---------- Utilidades reutilizables ---------- */
 .container {
   width: 100%;
   max-width: var(--max-width);
@@ -76,7 +63,6 @@ body {
   white-space: nowrap;
 }
 
-/* ---------- Botones ---------- */
 .button {
   display: inline-block;
   font-size: 0.95rem;
@@ -116,7 +102,6 @@ body {
   background-color: #d2d6dc;
 }
 
-/* ---------- Header ---------- */
 .header {
   background-color: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
@@ -140,7 +125,6 @@ body {
   color: var(--color-primary);
 }
 
-/* ---------- Dashboard / indicadores ---------- */
 .dashboard {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -170,7 +154,6 @@ body {
   margin-top: 0.25rem;
 }
 
-/* ---------- Búsqueda y filtros ---------- */
 .filters-section {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -248,7 +231,6 @@ body {
   border-radius: var(--radius);
 }
 
-/* ---------- Listado de tickets ---------- */
 .tickets-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -300,7 +282,6 @@ body {
   margin-top: 0.75rem;
 }
 
-/* Etiquetas de prioridad y estado (chips) */
 .badge {
   display: inline-block;
   padding: 0.2rem 0.6rem;
@@ -312,7 +293,6 @@ body {
   color: #fff;
 }
 
-/* Diferenciación visual por PRIORIDAD */
 .ticket-card[data-priority="Baja"] { border-left-color: var(--color-low); }
 .ticket-card[data-priority="Media"] { border-left-color: var(--color-medium); }
 .ticket-card[data-priority="Alta"] { border-left-color: var(--color-high); }
@@ -323,14 +303,12 @@ body {
 .badge-priority[data-priority="Alta"] { background-color: var(--color-high); }
 .badge-priority[data-priority="Crítica"] { background-color: var(--color-critical); }
 
-/* Diferenciación visual por ESTADO */
 .badge-status[data-status="Nuevo"] { background-color: var(--color-new); }
 .badge-status[data-status="En proceso"] { background-color: var(--color-process); }
 .badge-status[data-status="Resuelto"] { background-color: var(--color-resolved); }
 .badge-status[data-status="Cerrado"] { background-color: var(--color-closed); }
 .badge-status[data-status="Cancelado"] { background-color: var(--color-cancelled); }
 
-/* ---------- Estado vacío ---------- */
 .empty-state {
   text-align: center;
   padding: 3rem 1rem;
@@ -340,7 +318,6 @@ body {
   border-radius: var(--radius);
 }
 
-/* ---------- Modal ---------- */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -384,7 +361,6 @@ body {
   color: var(--color-cancelled);
 }
 
-/* ---------- Formulario ---------- */
 .form-group {
   margin-bottom: 1rem;
 }
@@ -427,7 +403,6 @@ body {
   margin-top: 1.5rem;
 }
 
-/* ---------- Footer ---------- */
 .footer {
   margin-top: 3rem;
   padding: 1.5rem 0;
@@ -438,11 +413,6 @@ body {
   color: var(--color-text-soft);
 }
 
-/* ============================================================
-   Responsive - Media Queries
-   ============================================================ */
-
-/* Tablet */
 @media (max-width: 768px) {
   .dashboard {
     grid-template-columns: repeat(2, 1fr);
@@ -454,7 +424,6 @@ body {
   }
 }
 
-/* Móvil */
 @media (max-width: 480px) {
   .filter-controls {
     flex-direction: column;
